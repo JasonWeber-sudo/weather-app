@@ -1,3 +1,7 @@
+console.log("API KEY:", API_KEY);
+
+import { API_KEY } from "./config.js";
+
 const form = document.getElementById("searchForm");
 const cityInput = document.getElementById("cityInput");
 
@@ -18,9 +22,6 @@ const recentList = document.getElementById("recentList");
 // ----------------------------
 let recentCities = [];
 let weatherMode = "clear";
-
-const apiKey = "e472440169dcc532d72a1a56090e2df3";
-
 
 // ----------------------------
 // FORM SUBMIT
@@ -50,7 +51,7 @@ async function getWeather(city) {
     status.textContent = `Getting weather for ${city}...`;
     weatherCard.classList.add("hidden");
 
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=imperial&appid=${apiKey}`;
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=imperial&appid=${API_KEY}`;
 
     const response = await fetch(url);
     const data = await response.json();
