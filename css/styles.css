@@ -1,0 +1,186 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(-45deg, #0f172a, #1e293b, #0b1220, #111827);
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
+
+  color: #f8fafc;
+
+  overflow-x: hidden;
+}
+
+/* 🌌 Particle canvas layer */
+#particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2; /* behind everything */
+  pointer-events: none; /* IMPORTANT: lets clicks pass through */
+}
+
+/* Optional soft glow overlay for cinematic feel */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(56,189,248,0.08), transparent 60%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ---------------- APP ---------------- */
+
+.app {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  text-align: center;
+
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------------- FORM ---------------- */
+
+form {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+input {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  outline: none;
+  font-size: 16px; /* mobile safe */
+}
+
+button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #38bdf8;
+  color: #0f172a;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+/* ---------------- WEATHER CARD ---------------- */
+
+#weatherCard {
+  margin-top: 24px;
+  padding: 22px;
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.4),
+    0 0 40px rgba(56,189,248,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.1);
+
+  transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+#weatherCard:hover {
+  transform: perspective(1000px) rotateX(4deg) rotateY(-4deg) scale(1.02);
+  box-shadow:
+    0 20px 50px rgba(0,0,0,0.5),
+    0 0 60px rgba(56,189,248,0.15);
+}
+
+/* ---------------- TEXT ---------------- */
+
+h1 {
+  font-size: 28px;
+  letter-spacing: 1px;
+}
+
+.temp {
+  font-size: 52px;
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+.details {
+  margin-top: 14px;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+#status {
+  margin-top: 12px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* ---------------- RECENT SEARCHES ---------------- */
+
+#recentContainer {
+  margin-top: 16px;
+  text-align: left;
+}
+
+#recentContainer h3 {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+
+#recentList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recent-item {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.recent-item:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.18);
+}
+
+/* ---------------- UTILS ---------------- */
+
+.hidden {
+  display: none;
+}

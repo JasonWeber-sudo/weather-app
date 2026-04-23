@@ -1,4 +1,55 @@
 <!DOCTYPE html>
-<head></head>
-<body></body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+    <canvas id="particles"></canvas>
+
+<main class="app">
+
+    <h1>Weather App</h1>
+
+    <!-- Search -->
+    <form id="searchForm">
+        <input type="text" id="cityInput" placeholder="Enter city..." />
+        <button type="submit">Search</button>
+    </form>
+
+    <!-- Status -->
+    <p id="status"></p>
+
+    <!-- Recent Searches -->
+    <div id="recentContainer">
+        <h3>Recent Searches</h3>
+        <div id="recentList"></div>
+    </div>
+
+    <!-- Weather Display -->
+    <div id="weatherCard" class="hidden">
+
+        <h2 id="cityName">City</h2>
+
+        <div class="temp">
+            <span id="temperature">--</span>°
+        </div>
+
+        <p id="description">--</p>
+
+        <div class="details">
+            <p>Humidity: <span id="humidity">--</span>%</p>
+            <p>Wind: <span id="wind">--</span> mph</p>
+        </div>
+
+    </div>
+
+</main>
+
+<script src="js/app.js"></script>
+</body>
 </html>
