@@ -20,7 +20,7 @@ body {
   overflow-x: hidden;
 }
 
-/* 🌌 Particle canvas layer */
+/* Particle canvas layer */
 #particles {
   position: fixed;
   top: 0;
