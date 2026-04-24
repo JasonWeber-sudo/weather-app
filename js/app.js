@@ -1,10 +1,12 @@
-console.log("API KEY:", API_KEY);
-
 import { API_KEY } from "./config.js";
 
+console.log("API KEY LOADED");
+
+// ----------------------------
+// DOM ELEMENTS
+// ----------------------------
 const form = document.getElementById("searchForm");
 const cityInput = document.getElementById("cityInput");
-
 const status = document.getElementById("status");
 
 const weatherCard = document.getElementById("weatherCard");
@@ -16,6 +18,26 @@ const wind = document.getElementById("wind");
 
 const recentList = document.getElementById("recentList");
 
+// ================= THEME TOGGLE =================
+
+const themeToggle = document.getElementById("themeToggle");
+
+// Load saved theme
+const savedTheme = localStorage.getItem("theme");
+if (savedTheme === "light") {
+  document.body.classList.add("light");
+  themeToggle.textContent = "☀️";
+}
+
+// Toggle theme
+themeToggle.addEventListener("click", () => {
+  document.body.classList.toggle("light");
+
+  const isLight = document.body.classList.contains("light");
+  themeToggle.textContent = isLight ? "☀️" : "🌙";
+
+  localStorage.setItem("theme", isLight ? "light" : "dark");
+});
 
 // ----------------------------
 // STATE
@@ -42,9 +64,8 @@ form.addEventListener("submit", (e) => {
   getWeather(city);
 });
 
-
 // ----------------------------
-// REAL WEATHER API
+// WEATHER API
 // ----------------------------
 async function getWeather(city) {
   try {
@@ -52,83 +73,62 @@ async function getWeather(city) {
     weatherCard.classList.add("hidden");
 
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=imperial&appid=${API_KEY}`;
-
     const response = await fetch(url);
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "City not found");
-    }
-
-    console.log("API DATA:", data);
-
-    const formatted = {
-      name: data.name,
-      main: {
-        temp: data.main.temp,
-        humidity: data.main.humidity
-      },
-      weather: [
-        {
-          description: data.weather[0].description,
-          main: data.weather[0].main
-        }
-      ],
-      wind: {
-        speed: data.wind.speed
-      }
-    };
+    if (!response.ok) throw new Error(data.message || "City not found");
 
     setTimeout(() => {
-      updateUI(formatted);
-      status.textContent = "";
-    }, 500);
+      updateUI({
+        name: data.name,
+        main: {
+          temp: data.main.temp,
+          humidity: data.main.humidity
+        },
+        weather: [{
+          description: data.weather[0].description,
+          main: data.weather[0].main
+        }],
+        wind: {
+          speed: data.wind.speed
+        }
+      });
+    }, 400);
 
-  } catch (error) {
-    status.textContent = error.message;
-    console.error(error);
+  } catch (err) {
+    status.textContent = err.message;
+    console.error(err);
   }
 }
 
-
 // ----------------------------
-// APPLY WEATHER THEME (REAL DATA)
+// WEATHER THEMES
 // ----------------------------
-function applyWeatherTheme(description, main) {
+function applyWeatherTheme(desc, main) {
   const body = document.body;
-
   body.classList.remove("sunny", "rainy", "stormy", "cloudy");
 
-  const text = description.toLowerCase();
+  const text = desc.toLowerCase();
   const type = main.toLowerCase();
 
-  // Rain detection
-  if (type.includes("rain") || text.includes("rain")) {
-    weatherMode = "rain";
-    body.classList.add("rainy");
-  }
-
-  // Storm detection
-  else if (type.includes("thunder") || type.includes("storm")) {
+  if (type.includes("thunder") || type.includes("storm")) {
     weatherMode = "storm";
     body.classList.add("stormy");
-
     triggerLightning();
-  }
-
-  // Cloud detection
+  } 
+  else if (type.includes("rain") || text.includes("rain")) {
+    weatherMode = "rain";
+    body.classList.add("rainy");
+  } 
   else if (type.includes("cloud")) {
     weatherMode = "cloud";
     body.classList.add("cloudy");
-  }
-
-  // Clear
+  } 
   else {
     weatherMode = "clear";
     body.classList.add("sunny");
   }
 }
-
 
 // ----------------------------
 // UPDATE UI
@@ -140,10 +140,7 @@ function updateUI(data) {
   humidity.textContent = data.main.humidity;
   wind.textContent = data.wind.speed;
 
-  applyWeatherTheme(
-    data.weather[0].description,
-    data.weather[0].main
-  );
+  applyWeatherTheme(data.weather[0].description, data.weather[0].main);
 
   status.textContent = "";
   cityInput.value = "";
@@ -152,67 +149,49 @@ function updateUI(data) {
   weatherCard.classList.remove("hidden");
 }
 
-
 // ----------------------------
 // RECENT SEARCHES
 // ----------------------------
 function renderRecent() {
   recentList.innerHTML = "";
 
-  recentCities.forEach((city) => {
+  recentCities.forEach(city => {
     const div = document.createElement("div");
-    div.classList.add("recent-item");
+    div.className = "recent-item";
     div.textContent = city;
-
-    div.addEventListener("click", () => getWeather(city));
-
+    div.onclick = () => getWeather(city);
     recentList.appendChild(div);
   });
 }
 
-
 // ----------------------------
-// 3D TILT EFFECT
+// 3D CARD TILT
 // ----------------------------
 weatherCard.addEventListener("mousemove", (e) => {
   const rect = weatherCard.getBoundingClientRect();
-
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  const rotateX = ((y - rect.height / 2) / rect.height) * -8;
-  const rotateY = ((x - rect.width / 2) / rect.width) * 8;
-
   weatherCard.style.transform = `
     perspective(1000px)
-    rotateX(${rotateX}deg)
-    rotateY(${rotateY}deg)
+    rotateX(${((y / rect.height) - 0.5) * -8}deg)
+    rotateY(${((x / rect.width) - 0.5) * 8}deg)
     scale(1.02)
   `;
 });
 
 weatherCard.addEventListener("mouseleave", () => {
-  weatherCard.style.transform = `
-    perspective(1000px)
-    rotateX(0deg)
-    rotateY(0deg)
-    scale(1)
-  `;
+  weatherCard.style.transform = "perspective(1000px) rotateX(0) rotateY(0)";
 });
 
-
 // ----------------------------
-// LIGHTNING SYSTEM
+// LIGHTNING
 // ----------------------------
 function triggerLightning() {
   const flash = document.createElement("div");
-
   Object.assign(flash.style, {
     position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
+    inset: 0,
     background: "white",
     opacity: 0,
     pointerEvents: "none",
@@ -221,23 +200,29 @@ function triggerLightning() {
   });
 
   document.body.appendChild(flash);
-
-  setTimeout(() => flash.style.opacity = 0.8, 50);
+  setTimeout(() => flash.style.opacity = 0.7, 50);
   setTimeout(() => flash.style.opacity = 0, 150);
   setTimeout(() => flash.remove(), 400);
 }
 
-
 // ----------------------------
-// PARTICLE SYSTEM
+// PARTICLES (FIXED)
 // ----------------------------
 const canvas = document.getElementById("particles");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
 
-let particlesArray = [];
+resizeCanvas();
+
+let particles = [];
 
 class Particle {
   constructor() {
@@ -247,61 +232,43 @@ class Particle {
   reset() {
     this.x = Math.random() * canvas.width;
     this.y = Math.random() * canvas.height;
-    this.size = Math.random() * 2;
-    this.speedX = (Math.random() - 0.5) * 0.3;
-    this.speedY = (Math.random() - 0.5) * 0.3;
+    this.size = Math.random() * 2 + 1;
+    this.speedX = (Math.random() - 0.5) * 0.4;
+    this.speedY = (Math.random() - 0.5) * 0.4;
   }
 
   update() {
-
-    // RAIN
-    if (weatherMode === "rain") {
-      this.y += 8;
-      this.x += 1;
+    if (weatherMode === "rain" || weatherMode === "storm") {
+      this.y += weatherMode === "storm" ? 6 : 10;
+      this.x += Math.random() * 1.5;
 
       if (this.y > canvas.height) {
-        this.y = 0;
+        this.y = -20;
         this.x = Math.random() * canvas.width;
       }
-    }
-
-    // STORM
-    else if (weatherMode === "storm") {
-      this.y += 3;
-      this.x += Math.sin(this.y * 0.02) * 2;
-
-      if (this.y > canvas.height) {
-        this.y = 0;
-        this.x = Math.random() * canvas.width;
-      }
-    }
-
-    // NORMAL
-    else {
+    } else {
       this.x += this.speedX;
       this.y += this.speedY;
-
-      if (this.x > canvas.width) this.x = 0;
       if (this.x < 0) this.x = canvas.width;
-      if (this.y > canvas.height) this.y = 0;
+      if (this.x > canvas.width) this.x = 0;
       if (this.y < 0) this.y = canvas.height;
+      if (this.y > canvas.height) this.y = 0;
     }
   }
 
   draw() {
-    if (weatherMode === "rain") {
-      ctx.strokeStyle = "rgba(120,180,255,0.8)";
+    if (weatherMode === "rain" || weatherMode === "storm") {
+      ctx.strokeStyle = "rgba(120,180,255,0.6)";
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
-      ctx.lineTo(this.x - 2, this.y - 12);
+      ctx.lineTo(
+        this.x - (Math.random() * 2 + 1),
+        this.y - (Math.random() * 12 + 10)
+      );
       ctx.stroke();
-    } 
-    else {
-      ctx.fillStyle =
-        weatherMode === "storm"
-          ? "rgba(200,200,255,0.6)"
-          : "rgba(255,255,255,0.5)";
-
+    } else {
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
       ctx.fill();
@@ -309,23 +276,17 @@ class Particle {
   }
 }
 
-
-// init particles
 function initParticles() {
-  particlesArray = [];
-  for (let i = 0; i < 100; i++) {
-    particlesArray.push(new Particle());
-  }
+  particles = [];
+  for (let i = 0; i < 120; i++) particles.push(new Particle());
 }
 
 function animateParticles() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  for (let p of particlesArray) {
+  particles.forEach(p => {
     p.update();
     p.draw();
-  }
-
+  });
   requestAnimationFrame(animateParticles);
 }
 
@@ -333,7 +294,6 @@ initParticles();
 animateParticles();
 
 window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  resizeCanvas();
   initParticles();
 });

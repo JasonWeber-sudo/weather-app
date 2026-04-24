@@ -1,8 +1,28 @@
+/* ================= THEME VARIABLES ================= */
+
+:root {
+  --bg-main: linear-gradient(-45deg, #0f172a, #1e293b, #0b1220, #111827);
+  --text-main: #f8fafc;
+  --card-bg: rgba(255, 255, 255, 0.08);
+  --accent: #38bdf8;
+}
+
+body.light {
+  --bg-main: linear-gradient(-45deg, #e0f2fe, #f8fafc, #e2e8f0, #ffffff);
+  --text-main: #0f172a;
+  --card-bg: rgba(0, 0, 0, 0.06);
+  --accent: #0284c7;
+}
+
+/* ================= RESET ================= */
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+
+/* ================= BODY ================= */
 
 body {
   font-family: system-ui, -apple-system, Arial, sans-serif;
@@ -11,35 +31,94 @@ body {
   justify-content: center;
   align-items: center;
 
-  background: linear-gradient(-45deg, #0f172a, #1e293b, #0b1220, #111827);
+  background: var(--bg-main);
   background-size: 400% 400%;
   animation: gradientShift 12s ease infinite;
 
-  color: #f8fafc;
+  color: var(--text-main);
+  overflow: hidden;
 
-  overflow-x: hidden;
+  transition: background 0.6s ease, color 0.4s ease;
 }
 
-/* Particle canvas layer */
+/* ================= WEATHER APP ================= */
+
+.weather-app {
+  min-height: 100vh;
+  padding: 2rem;
+  color: inherit;
+
+  transition:
+    background 0.8s ease,
+    color 0.5s ease;
+}
+
+.weather-app * {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.weather-app.loading * {
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+/* Weather state backgrounds */
+.weather-app.clear {
+  background: linear-gradient(#4facfe, #00f2fe);
+}
+
+.weather-app.clouds {
+  background: linear-gradient(#bdc3c7, #2c3e50);
+}
+
+.weather-app.rain {
+  background: linear-gradient(#314755, #26a0da);
+}
+
+.weather-app.snow {
+  background: linear-gradient(#83a4d4, #b6fbff);
+}
+
+.weather-app.thunderstorm {
+  background: linear-gradient(#232526, #414345);
+}
+
+/* Rain animation */
+.weather-app.rain img {
+  animation: rainFloat 1.5s infinite alternate;
+}
+
+@keyframes rainFloat {
+  from { transform: translateY(0); }
+  to { transform: translateY(6px); }
+}
+
+/* ================= PARTICLES ================= */
+
 #particles {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
-  z-index: -2; /* behind everything */
-  pointer-events: none; /* IMPORTANT: lets clicks pass through */
+  z-index: -2;
+  pointer-events: none;
+  display: block;
 }
 
-/* Optional soft glow overlay for cinematic feel */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(56,189,248,0.08), transparent 60%);
+  background: radial-gradient(
+    circle at center,
+    rgba(56,189,248,0.08),
+    transparent 60%
+  );
   z-index: -1;
   pointer-events: none;
 }
+
+/* ================= GRADIENT ================= */
 
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
@@ -47,7 +126,7 @@ body::before {
   100% { background-position: 0% 50%; }
 }
 
-/* ---------------- APP ---------------- */
+/* ================= APP ================= */
 
 .app {
   width: 100%;
@@ -59,7 +138,37 @@ body::before {
   z-index: 1;
 }
 
-/* ---------------- FORM ---------------- */
+/* ================= THEME TOGGLE ================= */
+
+.theme-toggle {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+
+  background: var(--card-bg);
+  color: var(--text-main);
+
+  font-size: 18px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* ================= FORM ================= */
 
 form {
   display: flex;
@@ -73,7 +182,7 @@ input {
   border: none;
   border-radius: 8px;
   outline: none;
-  font-size: 16px; /* mobile safe */
+  font-size: 16px;
 }
 
 button {
@@ -81,9 +190,11 @@ button {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  background: #38bdf8;
+
+  background: var(--accent);
   color: #0f172a;
   font-weight: 600;
+
   transition: all 0.2s ease;
 }
 
@@ -92,14 +203,14 @@ button:hover {
   filter: brightness(1.1);
 }
 
-/* ---------------- WEATHER CARD ---------------- */
+/* ================= WEATHER CARD ================= */
 
 #weatherCard {
   margin-top: 24px;
   padding: 22px;
   border-radius: 18px;
 
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--card-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 
@@ -121,7 +232,7 @@ button:hover {
     0 0 60px rgba(56,189,248,0.15);
 }
 
-/* ---------------- TEXT ---------------- */
+/* ================= TEXT ================= */
 
 h1 {
   font-size: 28px;
@@ -146,7 +257,7 @@ h1 {
   opacity: 0.8;
 }
 
-/* ---------------- RECENT SEARCHES ---------------- */
+/* ================= RECENT ================= */
 
 #recentContainer {
   margin-top: 16px;
@@ -179,7 +290,7 @@ h1 {
   background: rgba(255,255,255,0.18);
 }
 
-/* ---------------- UTILS ---------------- */
+/* ================= UTILS ================= */
 
 .hidden {
   display: none;
