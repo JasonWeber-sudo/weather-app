@@ -1,178 +1,157 @@
 import { API_KEY } from "./config.js";
 
-console.log("API KEY LOADED");
+/*
+ * Weather App
+ * Author: Jason Weber
+ * Stack: Vanilla JS + Canvas
+ * Features: Theme toggle, weather effects, particles, lightning
+ */
 
-// ----------------------------
-// DOM ELEMENTS
-// ----------------------------
-const form = document.getElementById("searchForm");
-const cityInput = document.getElementById("cityInput");
-const status = document.getElementById("status");
+// DOM Elements
+const DOM = {
+  form: document.getElementById("searchForm"),
+  cityInput: document.getElementById("cityInput"),
+  status: document.getElementById("status"),
 
-const weatherCard = document.getElementById("weatherCard");
-const cityName = document.getElementById("cityName");
-const temperature = document.getElementById("temperature");
-const description = document.getElementById("description");
-const humidity = document.getElementById("humidity");
-const wind = document.getElementById("wind");
+  weatherCard: document.getElementById("weatherCard"),
+  cityName: document.getElementById("cityName"),
+  temperature: document.getElementById("temperature"),
+  description: document.getElementById("description"),
+  humidity: document.getElementById("humidity"),
+  wind: document.getElementById("wind"),
 
-const recentList = document.getElementById("recentList");
+  recentList: document.getElementById("recentList"),
+  themeToggle: document.getElementById("themeToggle"),
 
-// ================= THEME TOGGLE =================
+  canvas: document.getElementById("particles")
+};
 
-const themeToggle = document.getElementById("themeToggle");
+// Application State
+const state = {
+  recentCities: [],
+  weatherMode: "clear",
+  particles: []
+};
 
-// Load saved theme
-const savedTheme = localStorage.getItem("theme");
-if (savedTheme === "light") {
-  document.body.classList.add("light");
-  themeToggle.textContent = "☀️";
+// Dark/Light Theme
+function loadTheme() {
+  const saved = localStorage.getItem("theme");
+  if (saved === "light") {
+    document.body.classList.add("light");
+    DOM.themeToggle.textContent = "☀️";
+  }
 }
 
-// Toggle theme
-themeToggle.addEventListener("click", () => {
+function toggleTheme() {
   document.body.classList.toggle("light");
-
   const isLight = document.body.classList.contains("light");
-  themeToggle.textContent = isLight ? "☀️" : "🌙";
 
+  DOM.themeToggle.textContent = isLight ? "☀️" : "🌙";
   localStorage.setItem("theme", isLight ? "light" : "dark");
-});
+}
 
-// ----------------------------
-// STATE
-// ----------------------------
-let recentCities = [];
-let weatherMode = "clear";
+DOM.themeToggle.addEventListener("click", toggleTheme);
+loadTheme();
 
-// ----------------------------
-// FORM SUBMIT
-// ----------------------------
-form.addEventListener("submit", (e) => {
+// Form Handling
+DOM.form.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const city = cityInput.value.trim();
+  const city = DOM.cityInput.value.trim();
   if (!city) {
-    status.textContent = "Please enter a city name.";
+    DOM.status.textContent = "Please enter a city name.";
     return;
   }
 
-  recentCities.unshift(city);
-  recentCities = recentCities.slice(0, 5);
-  renderRecent();
-
-  getWeather(city);
+  updateRecentCities(city);
+  fetchWeather(city);
 });
 
-// ----------------------------
-// WEATHER API
-// ----------------------------
-async function getWeather(city) {
+// Weather API Fetch
+async function fetchWeather(city) {
   try {
-    status.textContent = `Getting weather for ${city}...`;
-    weatherCard.classList.add("hidden");
+    DOM.status.textContent = `Getting weather for ${city}...`;
+    DOM.weatherCard.classList.add("hidden");
 
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=imperial&appid=${API_KEY}`;
-    const response = await fetch(url);
-    const data = await response.json();
+    const url =
+      `https://api.openweathermap.org/data/2.5/weather` +
+      `?q=${city}&units=imperial&appid=${API_KEY}`;
 
-    if (!response.ok) throw new Error(data.message || "City not found");
+    const res = await fetch(url);
+    const data = await res.json();
 
-    setTimeout(() => {
-      updateUI({
-        name: data.name,
-        main: {
-          temp: data.main.temp,
-          humidity: data.main.humidity
-        },
-        weather: [{
-          description: data.weather[0].description,
-          main: data.weather[0].main
-        }],
-        wind: {
-          speed: data.wind.speed
-        }
-      });
-    }, 400);
+    if (!res.ok) throw new Error(data.message || "City not found");
+
+    setTimeout(() => updateUI(data), 400);
 
   } catch (err) {
-    status.textContent = err.message;
+    DOM.status.textContent = err.message;
     console.error(err);
   }
 }
 
-// ----------------------------
-// WEATHER THEMES
-// ----------------------------
-function applyWeatherTheme(desc, main) {
-  const body = document.body;
-  body.classList.remove("sunny", "rainy", "stormy", "cloudy");
+// UI Update
+function updateUI(data) {
+  DOM.cityName.textContent = data.name;
+  DOM.temperature.textContent = Math.round(data.main.temp);
+  DOM.description.textContent = data.weather[0].description;
+  DOM.humidity.textContent = data.main.humidity;
+  DOM.wind.textContent = data.wind.speed;
 
-  const text = desc.toLowerCase();
+  applyWeatherMode(
+    data.weather[0].main,
+    data.weather[0].description
+  );
+
+  DOM.status.textContent = "";
+  DOM.cityInput.value = "";
+  DOM.cityInput.focus();
+  DOM.weatherCard.classList.remove("hidden");
+}
+
+// Weather Mode Logic
+function applyWeatherMode(main, description) {
   const type = main.toLowerCase();
+  const text = description.toLowerCase();
 
   if (type.includes("thunder") || type.includes("storm")) {
-    weatherMode = "storm";
-    body.classList.add("stormy");
+    state.weatherMode = "storm";
     triggerLightning();
-  } 
-  else if (type.includes("rain") || text.includes("rain")) {
-    weatherMode = "rain";
-    body.classList.add("rainy");
-  } 
-  else if (type.includes("cloud")) {
-    weatherMode = "cloud";
-    body.classList.add("cloudy");
-  } 
-  else {
-    weatherMode = "clear";
-    body.classList.add("sunny");
+  } else if (type.includes("rain") || text.includes("rain")) {
+    state.weatherMode = "rain";
+  } else if (type.includes("cloud")) {
+    state.weatherMode = "cloud";
+  } else {
+    state.weatherMode = "clear";
   }
 }
 
-// ----------------------------
-// UPDATE UI
-// ----------------------------
-function updateUI(data) {
-  cityName.textContent = data.name;
-  temperature.textContent = Math.round(data.main.temp);
-  description.textContent = data.weather[0].description;
-  humidity.textContent = data.main.humidity;
-  wind.textContent = data.wind.speed;
-
-  applyWeatherTheme(data.weather[0].description, data.weather[0].main);
-
-  status.textContent = "";
-  cityInput.value = "";
-  cityInput.focus();
-
-  weatherCard.classList.remove("hidden");
+// Recent Searches
+function updateRecentCities(city) {
+  state.recentCities.unshift(city);
+  state.recentCities = state.recentCities.slice(0, 5);
+  renderRecentCities();
 }
 
-// ----------------------------
-// RECENT SEARCHES
-// ----------------------------
-function renderRecent() {
-  recentList.innerHTML = "";
+function renderRecentCities() {
+  DOM.recentList.innerHTML = "";
 
-  recentCities.forEach(city => {
-    const div = document.createElement("div");
-    div.className = "recent-item";
-    div.textContent = city;
-    div.onclick = () => getWeather(city);
-    recentList.appendChild(div);
+  state.recentCities.forEach(city => {
+    const item = document.createElement("div");
+    item.className = "recent-item";
+    item.textContent = city;
+    item.onclick = () => fetchWeather(city);
+    DOM.recentList.appendChild(item);
   });
 }
 
-// ----------------------------
-// 3D CARD TILT
-// ----------------------------
-weatherCard.addEventListener("mousemove", (e) => {
-  const rect = weatherCard.getBoundingClientRect();
+// 3D Card Tilt Effect
+DOM.weatherCard.addEventListener("mousemove", (e) => {
+  const rect = DOM.weatherCard.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  weatherCard.style.transform = `
+  DOM.weatherCard.style.transform = `
     perspective(1000px)
     rotateX(${((y / rect.height) - 0.5) * -8}deg)
     rotateY(${((x / rect.width) - 0.5) * 8}deg)
@@ -180,15 +159,15 @@ weatherCard.addEventListener("mousemove", (e) => {
   `;
 });
 
-weatherCard.addEventListener("mouseleave", () => {
-  weatherCard.style.transform = "perspective(1000px) rotateX(0) rotateY(0)";
+DOM.weatherCard.addEventListener("mouseleave", () => {
+  DOM.weatherCard.style.transform =
+    "perspective(1000px) rotateX(0) rotateY(0)";
 });
 
-// ----------------------------
-// LIGHTNING
-// ----------------------------
+// Lightning Flash Effect
 function triggerLightning() {
   const flash = document.createElement("div");
+
   Object.assign(flash.style, {
     position: "fixed",
     inset: 0,
@@ -200,100 +179,121 @@ function triggerLightning() {
   });
 
   document.body.appendChild(flash);
+
   setTimeout(() => flash.style.opacity = 0.7, 50);
   setTimeout(() => flash.style.opacity = 0, 150);
   setTimeout(() => flash.remove(), 400);
 }
 
-// ----------------------------
-// PARTICLES (FIXED)
-// ----------------------------
-const canvas = document.getElementById("particles");
-const ctx = canvas.getContext("2d");
+// Canvas Particles Setup
+const ctx = DOM.canvas.getContext("2d");
 
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = window.innerWidth * dpr;
-  canvas.height = window.innerHeight * dpr;
-  canvas.style.width = window.innerWidth + "px";
-  canvas.style.height = window.innerHeight + "px";
+
+  DOM.canvas.width = window.innerWidth * dpr;
+  DOM.canvas.height = window.innerHeight * dpr;
+  DOM.canvas.style.width = window.innerWidth + "px";
+  DOM.canvas.style.height = window.innerHeight + "px";
+
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
 resizeCanvas();
+window.addEventListener("resize", () => {
+  resizeCanvas();
+  initParticles();
+});
 
-let particles = [];
+// Utilities for Canvas Particles
+function isLightMode() {
+  return document.body.classList.contains("light");
+}
 
+function getParticleColors() {
+  return {
+    rain: isLightMode()
+      ? "rgba(15,23,42,0.95)"
+      : "rgba(120,180,255,0.6)",
+
+    normal: isLightMode()
+      ? "rgba(15,23,42,0.85)"
+      : "rgba(255,255,255,0.5)"
+  };
+}
+
+// Particle Class
 class Particle {
   constructor() {
     this.reset();
   }
 
   reset() {
-    this.x = Math.random() * canvas.width;
-    this.y = Math.random() * canvas.height;
+    this.x = Math.random() * DOM.canvas.width;
+    this.y = Math.random() * DOM.canvas.height;
     this.size = Math.random() * 2 + 1;
     this.speedX = (Math.random() - 0.5) * 0.4;
     this.speedY = (Math.random() - 0.5) * 0.4;
   }
 
   update() {
-    if (weatherMode === "rain" || weatherMode === "storm") {
-      this.y += weatherMode === "storm" ? 6 : 10;
+    if (state.weatherMode === "rain" || state.weatherMode === "storm") {
+      this.y += state.weatherMode === "storm" ? 6 : 10;
       this.x += Math.random() * 1.5;
 
-      if (this.y > canvas.height) {
+      if (this.y > DOM.canvas.height) {
         this.y = -20;
-        this.x = Math.random() * canvas.width;
+        this.x = Math.random() * DOM.canvas.width;
       }
     } else {
       this.x += this.speedX;
       this.y += this.speedY;
-      if (this.x < 0) this.x = canvas.width;
-      if (this.x > canvas.width) this.x = 0;
-      if (this.y < 0) this.y = canvas.height;
-      if (this.y > canvas.height) this.y = 0;
+
+      if (this.x < 0) this.x = DOM.canvas.width;
+      if (this.x > DOM.canvas.width) this.x = 0;
+      if (this.y < 0) this.y = DOM.canvas.height;
+      if (this.y > DOM.canvas.height) this.y = 0;
     }
   }
 
   draw() {
-    if (weatherMode === "rain" || weatherMode === "storm") {
-      ctx.strokeStyle = "rgba(120,180,255,0.6)";
-      ctx.lineWidth = 1;
+    const colors = getParticleColors();
+
+    if (state.weatherMode === "rain" || state.weatherMode === "storm") {
+      ctx.strokeStyle = colors.rain;
+      ctx.lineWidth = isLightMode() ? 2.5 : 1.2;
+
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
-      ctx.lineTo(
-        this.x - (Math.random() * 2 + 1),
-        this.y - (Math.random() * 12 + 10)
-      );
+      ctx.lineTo(this.x - 2, this.y - 16);
       ctx.stroke();
     } else {
-      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.fillStyle = colors.normal;
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.arc(this.x, this.y, this.size + (isLightMode() ? 0.8 : 0), 0, Math.PI * 2);
       ctx.fill();
     }
   }
 }
 
+// Particle Loop Function
 function initParticles() {
-  particles = [];
-  for (let i = 0; i < 120; i++) particles.push(new Particle());
+  state.particles = [];
+  for (let i = 0; i < 120; i++) {
+    state.particles.push(new Particle());
+  }
 }
 
 function animateParticles() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  particles.forEach(p => {
+  ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+
+  state.particles.forEach(p => {
     p.update();
     p.draw();
   });
+
   requestAnimationFrame(animateParticles);
 }
 
 initParticles();
 animateParticles();
-
-window.addEventListener("resize", () => {
-  resizeCanvas();
-  initParticles();
-});

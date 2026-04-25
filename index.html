@@ -1,32 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta and document set up -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Weather App</title>
+
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="css/styles.css" />
+
+    <!-- Favicon -->
     <link rel="icon" href="favicon-icon/favicon.png" type="image/png">
 </head>
 
 <body>
-
+    <!-- Particle Background Effect -->
     <canvas id="particles"></canvas>
 
+<!-- Main App Container -->
 <main class="app">
 
+    <!-- App Title (Placeholder) -->
     <h1>Weather App</h1>
 
-    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+    <!-- Dark/Light Theme Toggle Button -->
+    <button 
+        id="themeToggle" 
+        class="theme-toggle" 
+        aria-label="Toggle theme"
+        type="button"
+    >
       🌙
     </button>
 
-    <!-- Search -->
+    <!-- City Search Form -->
     <form id="searchForm">
-        <input type="text" id="cityInput" placeholder="Enter city..." />
+        <input 
+            type="text" 
+            id="cityInput" 
+            placeholder="Enter city..." 
+            required
+        />
         <button type="submit">Search</button>
     </form>
 
-    <!-- Status -->
+    <!-- Status Messages (Error/Loading States) -->
     <p id="status"></p>
 
     <!-- Recent Searches -->
@@ -35,17 +54,21 @@
         <div id="recentList"></div>
     </div>
 
-    <!-- Weather Display -->
+    <!-- Weather Display (Hidden until data is loaded) -->
     <div id="weatherCard" class="hidden">
 
+        <!-- City Name -->
         <h2 id="cityName">City</h2>
 
+        <!-- Temperature -->
         <div class="temp">
             <span id="temperature">--</span>°
         </div>
 
+        <!-- Weather Description -->
         <p id="description">--</p>
 
+        <!-- Additional Details -->
         <div class="details">
             <p>Humidity: <span id="humidity">--</span>%</p>
             <p>Wind: <span id="wind">--</span> mph</p>
@@ -55,6 +78,7 @@
 
 </main>
 
+<!-- Link to JavaScript -->
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

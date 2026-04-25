@@ -1,20 +1,41 @@
-/* ================= THEME VARIABLES ================= */
+/**
+ * Weather App Styles
+ * Author: Jason Weber
+ * Purpose: UI layout, animations, theming, and visual effects
+ * Stack: CSS3, custom properties, animations, glassmorphism
+ */
 
+/* Theme Variables */
+
+/* Dark Theme (Default) */
 :root {
   --bg-main: linear-gradient(-45deg, #0f172a, #1e293b, #0b1220, #111827);
   --text-main: #f8fafc;
   --card-bg: rgba(255, 255, 255, 0.08);
   --accent: #38bdf8;
+  --particle-opacity: 0.35;
 }
 
+/* Light Theme */
 body.light {
-  --bg-main: linear-gradient(-45deg, #e0f2fe, #f8fafc, #e2e8f0, #ffffff);
+  --bg-main: linear-gradient(
+    -45deg, 
+    #cbd5e1,
+    #e2e8f0,
+    #c7d2fe,
+    #e0f2fe
+  );
   --text-main: #0f172a;
-  --card-bg: rgba(0, 0, 0, 0.06);
+  --card-bg: rgba(15, 23, 42, 0.08);
   --accent: #0284c7;
+  --particle-opacity: 0.18;
 }
 
-/* ================= RESET ================= */
+body.light canvas#particles {
+  filter: contrast(1.3) brightness(0.6);
+}
+
+/* Reset */
 
 * {
   margin: 0;
@@ -22,7 +43,7 @@ body.light {
   box-sizing: border-box;
 }
 
-/* ================= BODY ================= */
+/* Body/Background */
 
 body {
   font-family: system-ui, -apple-system, Arial, sans-serif;
@@ -41,28 +62,64 @@ body {
   transition: background 0.6s ease, color 0.4s ease;
 }
 
-/* ================= WEATHER APP ================= */
+/* Background Overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(56,189,248,0.08),
+    transparent 65%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+body.light::before {
+  background: radial-gradient(
+    circle at center,
+    rgba(15,23,42,0.15),
+    transparent 65%
+  );
+}
+
+/* Particle Effect (Canvas) */
+#particles {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  pointer-events: none;
+  opacity: var(--particle-opacity);
+}
+
+/* Weather App Container */
 
 .weather-app {
   min-height: 100vh;
   padding: 2rem;
   color: inherit;
 
+  /* Transitions/Visual Changes on App Container */
   transition:
     background 0.8s ease,
     color 0.5s ease;
 }
 
+/* Motion and Fade Transitions for all Child Elements */
 .weather-app * {
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
+/* Loading fade */
 .weather-app.loading * {
   opacity: 0;
   transform: translateY(5px);
 }
 
-/* Weather state backgrounds */
+/* Weather States (Backgrounds) */
 .weather-app.clear {
   background: linear-gradient(#4facfe, #00f2fe);
 }
@@ -83,7 +140,7 @@ body {
   background: linear-gradient(#232526, #414345);
 }
 
-/* Rain animation */
+/* Rain Animation */
 .weather-app.rain img {
   animation: rainFloat 1.5s infinite alternate;
 }
@@ -93,32 +150,7 @@ body {
   to { transform: translateY(6px); }
 }
 
-/* ================= PARTICLES ================= */
-
-#particles {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -2;
-  pointer-events: none;
-  display: block;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(
-    circle at center,
-    rgba(56,189,248,0.08),
-    transparent 60%
-  );
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* ================= GRADIENT ================= */
+/* Gradient Animation */
 
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
@@ -126,7 +158,7 @@ body::before {
   100% { background-position: 0% 50%; }
 }
 
-/* ================= APP ================= */
+/* App Layout */
 
 .app {
   width: 100%;
@@ -138,7 +170,7 @@ body::before {
   z-index: 1;
 }
 
-/* ================= THEME TOGGLE ================= */
+/* Theme Toggle */
 
 .theme-toggle {
   position: absolute;
@@ -168,7 +200,7 @@ body::before {
   transform: scale(1.1);
 }
 
-/* ================= FORM ================= */
+/* Search Form */
 
 form {
   display: flex;
@@ -203,7 +235,7 @@ button:hover {
   filter: brightness(1.1);
 }
 
-/* ================= WEATHER CARD ================= */
+/* Weather Card */
 
 #weatherCard {
   margin-top: 24px;
@@ -232,7 +264,7 @@ button:hover {
     0 0 60px rgba(56,189,248,0.15);
 }
 
-/* ================= TEXT ================= */
+/* Text Styles */
 
 h1 {
   font-size: 28px;
@@ -257,7 +289,7 @@ h1 {
   opacity: 0.8;
 }
 
-/* ================= RECENT ================= */
+/* Recent Searches */
 
 #recentContainer {
   margin-top: 16px;
@@ -290,7 +322,7 @@ h1 {
   background: rgba(255,255,255,0.18);
 }
 
-/* ================= UTILS ================= */
+/* Utilities */
 
 .hidden {
   display: none;
