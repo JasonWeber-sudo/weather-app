@@ -12,6 +12,7 @@
   --bg-main: linear-gradient(-45deg, #0f172a, #1e293b, #0b1220, #111827);
   --text-main: #f8fafc;
   --card-bg: rgba(255, 255, 255, 0.08);
+  --card-text: #f8fafc;
   --accent: #38bdf8;
   --particle-opacity: 0.35;
 }
@@ -20,15 +21,28 @@
 body.light {
   --bg-main: linear-gradient(
     -45deg, 
-    #cbd5e1,
     #e2e8f0,
-    #c7d2fe,
+    #f1f5f9,
+    #e0e7ff,
     #e0f2fe
   );
+
   --text-main: #0f172a;
-  --card-bg: rgba(15, 23, 42, 0.08);
+
+  /* Glass Surface Effect */
+  --card-bg: rgba(255, 255, 255, 0.38);
+
+  --card-tint: rgba(226, 232, 240, 0.35);
+
+  --card-border: rgba(15, 23, 42, 0.12);
+
+  --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+
+  --card-border: rgba(15, 23, 42, 0.08);
+
   --accent: #0284c7;
-  --particle-opacity: 0.18;
+
+  --particle-opacity: 0.28;
 }
 
 body.light canvas#particles {
@@ -57,7 +71,6 @@ body {
   animation: gradientShift 12s ease infinite;
 
   color: var(--text-main);
-  overflow: hidden;
 
   transition: background 0.6s ease, color 0.4s ease;
 }
@@ -90,7 +103,7 @@ body.light::before {
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: -2;
+  z-index: -1;
   pointer-events: none;
   opacity: var(--particle-opacity);
 }
@@ -158,9 +171,17 @@ body.light::before {
   100% { background-position: 0% 50%; }
 }
 
+html, body {
+  min-height: 100%;
+  overflow-y: auto;
+}
+
 /* App Layout */
 
 .app {
+  min-height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 3rem;
   width: 100%;
   max-width: 420px;
   padding: 24px;
@@ -237,6 +258,21 @@ button:hover {
 
 /* Weather Card */
 
+#weatherCard::before,
+.forecast-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,0.25),
+    rgba(255,255,255,0.05)
+  );
+
+  pointer-events: none;
+}
+
 #weatherCard {
   margin-top: 24px;
   padding: 22px;
@@ -246,12 +282,9 @@ button:hover {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--card-border);
 
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.4),
-    0 0 40px rgba(56,189,248,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.1);
+  box-shadow: var(--card-shadow);
 
   transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
   transition: transform 0.2s ease, box-shadow 0.3s ease;
@@ -262,6 +295,75 @@ button:hover {
   box-shadow:
     0 20px 50px rgba(0,0,0,0.5),
     0 0 60px rgba(56,189,248,0.15);
+}
+
+/* Forecast Styles */
+.forecast {
+  margin-top: 2rem;
+  width: 100%;
+}
+
+#forecast-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1rem;
+}
+
+/* Forecast Cards */
+.forecast-card {
+  background: var(--card-bg);
+  color: var(--text-main);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--card-border, rgba(255,255,255,0.12));
+  border-radius: 14px;
+}
+
+body.light .forecast-card {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.forecast-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.25);
+}
+
+.forecast-card p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.forecast-card p:first-child {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.forecast-icon {
+  width: 60px;
+  height: 60px;
+}
+
+.forecast-temps {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.forecast-temps .high {
+  font-weight: 700;
+}
+
+.forecast-temps .low {
+  opacity: 0.7;
+}
+
+.forecast-desc {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-top: 0.25rem;
 }
 
 /* Text Styles */

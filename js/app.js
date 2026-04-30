@@ -28,6 +28,10 @@ const DOM = {
 
 // Application State
 const state = {
+  status: "idle",
+  currentWeather: null,
+  forecast: [],
+  forecastError: false,
   recentCities: [],
   weatherMode: "clear",
   particles: []
@@ -65,6 +69,7 @@ DOM.form.addEventListener("submit", (e) => {
 
   updateRecentCities(city);
   fetchWeather(city);
+  fetchFiveDayForecast(city);
 });
 
 // Weather API Fetch
@@ -88,6 +93,95 @@ async function fetchWeather(city) {
     DOM.status.textContent = err.message;
     console.error(err);
   }
+}
+
+// Forecast API Fetch
+async function fetchFiveDayForecast(city) {
+  try {
+    DOM.status.textContent = "Loading forecast...";
+
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&units=imperial&appid=${API_KEY}`
+    );
+
+    if (!res.ok) throw new Error("Forecast not found");
+
+    const data = await res.json();
+
+    const dailyForecast = getDailyForecast(data.list);
+    renderForecast(dailyForecast);
+
+    DOM.status.textContent = "";
+  } catch (err) {
+    DOM.status.textContent = "Unable to load forecast data";
+    console.error(err);
+  }
+}
+
+// UI Render Forecast
+function renderForecast(forecastData) {
+  const container = document.getElementById("forecast-list");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  forecastData.forEach(day => {
+    const card = document.createElement("div");
+    card.className = "forecast-card";
+
+    card.innerHTML = `
+      <p class="forecast-date">
+        ${new Date(day.date).toLocaleDateString(undefined, { weekday: "short" })}
+      </p>
+
+      <img
+        class="forecast-icon"
+        src="https://openweathermap.org/img/wn/${day.icon}@2x.png"
+        alt="${day.description}"
+      />
+
+      <p class="forecast-temps">
+        <span class="high">${Math.round(day.high)}°</span>
+        <span class="low">${Math.round(day.low)}°</span>
+      </p>
+
+      <p class="forecast-desc">${day.description}</p>
+    `;
+
+    container.appendChild(card);
+  });
+
+  document.getElementById("forecast").classList.remove("hidden");
+}
+
+// Extract Daily Forecast from 3-Hour Data
+function getDailyForecast(list) {
+  const days = {};
+
+  list.forEach(item => {
+    const date = item.dt_txt.split(" ")[0];
+
+    if (!days[date]) {
+      days[date] = {
+        date,
+        temps: [],
+        icon: item.weather[0].icon,
+        description: item.weather[0].description
+      };
+    }
+
+    days[date].temps.push(item.main.temp);
+  });
+
+  return Object.values(days)
+    .slice(0, 5)
+    .map(day => ({
+      date: day.date,
+      high: Math.max(...day.temps),
+      low: Math.min(...day.temps),
+      icon: day.icon,
+      description: day.description
+    }));
 }
 
 // UI Update
@@ -285,8 +379,7 @@ function initParticles() {
 }
 
 function animateParticles() {
-  ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
-
+  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   state.particles.forEach(p => {
     p.update();
     p.draw();
